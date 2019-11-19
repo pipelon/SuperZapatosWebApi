@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SuperZapatosWebApi.Contexts;
 using SuperZapatosWebApi.Entities;
+using SuperZapatosWebApi.Models;
+using SuperZapatosWebApi.Services;
 
 namespace SuperZapatosWebApi.Controllers
 {
@@ -14,61 +17,53 @@ namespace SuperZapatosWebApi.Controllers
     [ApiController]
     public class StoresController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
 
-        public StoresController(ApplicationDbContext context)
+        private readonly IRepositoryStores repositoryStores;
+
+        public StoresController(IRepositoryStores repositoryStores)
         {
-            _context = context;
+
+            this.repositoryStores = repositoryStores;
         }
 
         // GET: api/Stores
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Store>>> GetStores()
+        public async Task<ActionResult<IEnumerable<StoreDTO>>> GetStores()
         {
-            return await _context.Stores.ToListAsync();
+            var stores = await repositoryStores.GetStoresAsync();
+
+            if (stores == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(stores);
         }
 
         // GET: api/Stores/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Store>> GetStore(int id)
+        [HttpGet("{id}", Name = "ObtenerStore")]
+        public async Task<ActionResult<StoreDTO>> GetStore(int id)
         {
-            var store = await _context.Stores.FindAsync(id);
+            var store = await repositoryStores.GetStoreAsync(id);
 
             if (store == null)
             {
                 return NotFound();
             }
 
-            return store;
+            return Ok(store);
         }
 
         // PUT: api/Stores/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutStore(int id, Store store)
+        public async Task<IActionResult> PutStore(int id, [FromBody] StoreCrUpDTO storeEd)
         {
-            if (id != store.Id)
+            var store = await repositoryStores.PutStoreAsync(id, storeEd);
+            if (store == null)
             {
-                return BadRequest();
-            }
-
-            _context.Entry(store).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!StoreExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return NotFound();
             }
 
             return NoContent();
@@ -78,33 +73,24 @@ namespace SuperZapatosWebApi.Controllers
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPost]
-        public async Task<ActionResult<Store>> PostStore(Store store)
+        public async Task<ActionResult<StoreDTO>> PostStore([FromBody] StoreCrUpDTO storeCr)
         {
-            _context.Stores.Add(store);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetStore", new { id = store.Id }, store);
+            var storeDTO =  await repositoryStores.PostStoreAsync(storeCr);
+            return new CreatedAtRouteResult("ObtenerStore", new { id = storeDTO.Value.Id }, storeDTO);
         }
-
+        
         // DELETE: api/Stores/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<Store>> DeleteStore(int id)
+        public async Task<ActionResult<StoreDTO>> DeleteStore(int id)
         {
-            var store = await _context.Stores.FindAsync(id);
+            var store = await repositoryStores.DeleteStoreAsync(id);
             if (store == null)
             {
                 return NotFound();
             }
-
-            _context.Stores.Remove(store);
-            await _context.SaveChangesAsync();
-
-            return store;
+            
+            return Ok(store);
         }
-
-        private bool StoreExists(int id)
-        {
-            return _context.Stores.Any(e => e.Id == id);
-        }
+        
     }
 }
