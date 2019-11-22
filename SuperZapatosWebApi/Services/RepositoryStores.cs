@@ -22,7 +22,7 @@ namespace SuperZapatosWebApi.Services
             this.mapper = mapper;
         }
 
-        public async Task<ActionResult<IEnumerable<StoreDTO>>> GetStoresAsync()
+        public async Task<IEnumerable<StoreDTO>> GetStoresAsync()
         {
             var stores = await context.Stores
                 .Include(x => x.Articles)
@@ -30,7 +30,7 @@ namespace SuperZapatosWebApi.Services
             return mapper.Map<List<StoreDTO>>(stores);
         }
 
-        public async Task<ActionResult<StoreDTO>> GetStoreAsync(int id)
+        public async Task<StoreDTO> GetStoreAsync(int id)
         {
             var store = await context.Stores.FindAsync(id);
             if (store == null)
@@ -41,7 +41,7 @@ namespace SuperZapatosWebApi.Services
 
         }
 
-        public async Task<ActionResult<StoreDTO>> PostStoreAsync(StoreCrUpDTO storeCr)
+        public async Task<StoreDTO> PostStoreAsync(StoreCrUpDTO storeCr)
         {
             var store = mapper.Map<Store>(storeCr);
             context.Stores.Add(store);
@@ -51,44 +51,25 @@ namespace SuperZapatosWebApi.Services
 
         }
 
-        public async Task<ActionResult<StoreDTO>> PutStoreAsync(int id, StoreCrUpDTO storeEd)
+        public async Task PutStoreAsync(int id, StoreCrUpDTO storeEd)
         {
             var store = mapper.Map<Store>(storeEd);
             store.Id = id;
             context.Entry(store).State = EntityState.Modified;
-            try
-            {
-                await context.SaveChangesAsync();
-                
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!StoreExists(id))
-                {
-                    return null;
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            var storeDTO = mapper.Map<StoreDTO>(store);
-            return storeDTO;
+            await context.SaveChangesAsync();
         }
 
-        public async Task<ActionResult<StoreDTO>> DeleteStoreAsync(int id)
+        public async Task<bool> DeleteStoreAsync(int id)
         {
             var store = await context.Stores.FindAsync(id);
             if (store == null)
             {
-                return null;
+                return false;
             }
 
             context.Stores.Remove(store);
             await context.SaveChangesAsync();
-
-            var storeDTO = mapper.Map<StoreDTO>(store);
-            return storeDTO;
+            return true;
         }
 
         private bool StoreExists(int id)

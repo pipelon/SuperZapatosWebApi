@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SuperZapatosWebApi.Contexts;
 using SuperZapatosWebApi.Entities;
+using SuperZapatosWebApi.Helpers;
 using SuperZapatosWebApi.Models;
 using SuperZapatosWebApi.Services;
 
@@ -31,13 +32,7 @@ namespace SuperZapatosWebApi.Controllers
         public async Task<ActionResult<IEnumerable<StoreDTO>>> GetStores()
         {
             var stores = await repositoryStores.GetStoresAsync();
-
-            if (stores == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(stores);
+            return new SuccessResponse(stores);
         }
 
         // GET: api/Stores/5
@@ -60,12 +55,14 @@ namespace SuperZapatosWebApi.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutStore(int id, [FromBody] StoreCrUpDTO storeEd)
         {
-            var store = await repositoryStores.PutStoreAsync(id, storeEd);
-            if (store == null)
+            try
+            {
+                await repositoryStores.PutStoreAsync(id, storeEd);
+            }
+            catch (DbUpdateConcurrencyException)
             {
                 return NotFound();
             }
-
             return NoContent();
         }
 
@@ -76,7 +73,7 @@ namespace SuperZapatosWebApi.Controllers
         public async Task<ActionResult<StoreDTO>> PostStore([FromBody] StoreCrUpDTO storeCr)
         {
             var storeDTO =  await repositoryStores.PostStoreAsync(storeCr);
-            return new CreatedAtRouteResult("ObtenerStore", new { id = storeDTO.Value.Id }, storeDTO);
+            return new CreatedAtRouteResult("ObtenerStore", new { id = storeDTO.Id }, storeDTO);
         }
         
         // DELETE: api/Stores/5
@@ -84,12 +81,12 @@ namespace SuperZapatosWebApi.Controllers
         public async Task<ActionResult<StoreDTO>> DeleteStore(int id)
         {
             var store = await repositoryStores.DeleteStoreAsync(id);
-            if (store == null)
+            if (!store)
             {
                 return NotFound();
             }
             
-            return Ok(store);
+            return Ok();
         }
         
     }

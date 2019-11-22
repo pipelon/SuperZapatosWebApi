@@ -9,14 +9,14 @@ namespace SuperZapatosWebApi.Services
 {
     public interface IRepositoryStores
     {
-        Task<ActionResult<IEnumerable<StoreDTO>>> GetStoresAsync();
+        Task<IEnumerable<StoreDTO>> GetStoresAsync();
 
-        Task<ActionResult<StoreDTO>> GetStoreAsync(int id);
+        Task<StoreDTO> GetStoreAsync(int id);
 
-        Task<ActionResult<StoreDTO>> PutStoreAsync(int id, StoreCrUpDTO storeEd);
+        Task PutStoreAsync(int id, StoreCrUpDTO storeEd);
 
-        Task<ActionResult<StoreDTO>> PostStoreAsync(StoreCrUpDTO storeCr);
+        Task<StoreDTO> PostStoreAsync(StoreCrUpDTO storeCr);
 
-        Task<ActionResult<StoreDTO>> DeleteStoreAsync(int id);
+        Task<bool> DeleteStoreAsync(int id);
     }
 }
