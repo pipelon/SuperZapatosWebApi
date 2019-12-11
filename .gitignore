@@ -1,2 +1,4 @@
 /.vs
 /SuperZapatosWebApi/bin/Debug
+/SuperZapatosWebApi/bin
+/SuperZapatosWebApi/obj
